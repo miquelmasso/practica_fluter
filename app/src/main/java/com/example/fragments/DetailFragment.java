@@ -1,6 +1,10 @@
 package com.example.fragments;
 
+import static com.example.fragments.Config.DefaultConstants.ACCOUNT_ID;
+import static com.example.fragments.Config.DefaultConstants.API_KEY;
 import static com.example.fragments.Config.DefaultConstants.BASE_IMG_URL;
+import static com.example.fragments.Config.DefaultConstants.SESSION_ID;
+import static com.example.fragments.Config.DefaultConstants.retrofit;
 
 import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
@@ -11,6 +15,7 @@ import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -19,12 +24,20 @@ import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.TextView;
 
+import com.example.fragments.Config.ApiCall;
 import com.example.fragments.Config.GlideApp;
+import com.example.fragments.Model.Film.FavFilmRequest;
+import com.example.fragments.Model.Film.FavFilmResponse;
 import com.example.fragments.Model.Film.Film;
+import com.example.fragments.Model.Film.searchFilmModel;
 import com.example.fragments.Model.List.List;
 import com.example.fragments.Recyclers.AddMovieListsRecyclerViewAdapter;
 
 import java.util.ArrayList;
+
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
 
 
 public class DetailFragment extends Fragment {
@@ -52,18 +65,40 @@ public class DetailFragment extends Fragment {
 
         txtDetailTitle.setText(film.getOriginal_title());
         txtDetailDesc.setText(film.getOverview());
-
+/*
         GlideApp.with(getContext())
                 .load(BASE_IMG_URL + film.getPoster_path())
                 .centerCrop()
                 .into(imgDetail);
-
+*/
         btnFav.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 btnFav.setImageResource(R.drawable.ic_fav_on);
-            }
-        });
+                FavFilmRequest request = new FavFilmRequest("movie", film.getId(), true);
+
+
+                ApiCall apiCall = retrofit.create(ApiCall.class);
+                Call<FavFilmResponse> call = apiCall.setFavourite( API_KEY, SESSION_ID,request);
+
+
+                call.enqueue(new Callback<FavFilmResponse>(){
+                    @Override
+                    public void onResponse(Call<FavFilmResponse> call, Response<FavFilmResponse> response) {
+                        if(response.code()!=201){
+                            Log.i("testApi", "checkConnection");
+                            return;
+                        }else {
+                          Log.i("testApi", response.body().getStatus_message());
+                        }
+                    }
+
+                    @Override
+                    public void onFailure(Call<FavFilmResponse> call, Throwable t) {
+
+                    }
+                });
+        }});
 
         btnAddtoList.setOnClickListener(new View.OnClickListener() {
             @Override
